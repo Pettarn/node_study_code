@@ -22,4 +22,16 @@ let parseCookie = function (cookie) {
     return cookies
 }
 
+(function (req, res) {
+    req.cookies = parseCookie(req.headers.cookie)
+    handle(req, res)
+})()
+
+let handle = function (req, res) {
+    res.writeHead(200, 'OK')
+    if (!res.cookies.isVisit) {
+        res.end("欢迎第一次来到动物园！")
+    }
+}
+
 console.log(parseCookie("name=fjh; age=21;"))
