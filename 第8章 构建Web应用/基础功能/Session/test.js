@@ -36,7 +36,10 @@ function core (req, res) {
 function handle (req, res) {
     res.writeHead = function () {
         const cookies = res.getHeaders['Set-Cookie']
-        const session = 
+        const session = serialize(KEY, req.session.id)
+        cookies = Array.isArray(cookies) ? cookies.concat(session) : [cookies, session]
+        res.setHeader('Set-Cookie', cookies)
+        return writeHead.apply(this, arguments)
     }
     res.writeHead(200, 'OK')
     if (!req.session.isVisit) {
