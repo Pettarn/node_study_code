@@ -2,6 +2,17 @@ const url = require('url')
 
 const key = 'session_id'
 const sessions = {}
+const EXPIRES = 20 * 60 * 1000 // 20min
+
+const generate = function () {
+    const session = {}
+    session.id = (new Date()).getTime() + Math.random()
+    session.cookie = {
+        expire: (new Date()).getTime() + EXPIRES
+    }
+    sessions[session.id] = session
+    return session
+}
 
 const getUrl = function (_url, key, value) {
     let obj = url.parse(_url, true)
@@ -17,4 +28,25 @@ function callback (req, res) {
     }
 
     const id = req.query[key]
+
+    if (!id) {
+        const session = generate()
+        redirect(getUrl(req.url, key, session.id))
+    } else {
+        let session = sessions[id]
+        if (session) {
+            if (session.cookie.expire > (new Date).getTime()) {
+                session.cookie.expire = (new Date()).getTime() + EXPIRES
+                req.session = session
+                handle(req, res)
+            } else {
+                delete sessions[id]
+                session = generate()
+                redirect(getUrl(req.url, key, session.id))
+            }
+        } else {
+            session = generate()
+            redirect(getUrl(req.url, key, session.id))
+        }
+    }
 }
